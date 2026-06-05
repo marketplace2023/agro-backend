@@ -17,6 +17,7 @@ import {
   AlreadyReviewed,
 } from '#modules/stores/errors.js'
 import { createStore, createStoreDto } from '#modules/stores/use-cases/create-store.js'
+import { onboardStore, onboardStoreDto } from '#modules/stores/use-cases/onboard-store.js'
 import {
   updateStore,
   updateStoreDto,
@@ -194,6 +195,23 @@ storeRoutes.get('/my/store', async (c) => {
   if (!store) throw new NotFoundException('No tienes una tienda registrada')
 
   return c.json(store)
+})
+
+// --- Onboarding: assign role + create store (no prior store role required) ---
+storeRoutes.post('/my/onboarding', zodValidator('json', onboardStoreDto), async (c) => {
+  const { user } = c.get('jwtPayload')
+  const [storeId, error] = await onboardStore(user.id, c.req.valid('json'))
+
+  if (error) {
+    throw Match.matchBrand(error)({
+      '@/stores/errors/StoreAlreadyExists': () =>
+        new ValidationException({ name: ['Ya tienes un perfil de negocio registrado'] }),
+      '@/stores/errors/SlugAlreadyExists': () =>
+        new ValidationException({ slug: ['Esa URL ya está en uso, prueba con otra'] }),
+    })
+  }
+
+  return c.json({ id: storeId }, StatusCodes.CREATED)
 })
 
 // --- Create my store ---
