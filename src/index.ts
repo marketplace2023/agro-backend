@@ -21,6 +21,7 @@ import { reputationRoutes } from '#modules/reputation/routes.js'
 import { radarRoutes } from '#modules/radar/routes.js'
 import { adminRoutes } from '#modules/admin/routes.js'
 import { supportRoutes } from '#modules/support/routes.js'
+import { blogRoutes } from '#modules/blog/routes.js'
 
 const app = new Hono()
 
@@ -54,6 +55,7 @@ app.route('/reputation', reputationRoutes)
 app.route('/radar', radarRoutes)
 app.route('/admin', adminRoutes)
 app.route('/support', supportRoutes)
+app.route('/blog', blogRoutes)
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'agro-backend' }))
 

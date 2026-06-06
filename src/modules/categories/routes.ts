@@ -27,14 +27,14 @@ import { ValidationException } from '#modules/shared/http/exceptions/validation-
 import { jwtMiddleware } from '#modules/shared/http/middleware/jwt-middleware.js'
 import { requireRole } from '#modules/shared/http/middleware/require-role.js'
 import { zodValidator } from '#modules/shared/http/middleware/zod-validator.js'
-import { asc, eq } from 'drizzle-orm'
+import { asc, eq, inArray } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { Match } from 'resultable'
 import { StatusCodes } from 'http-status-codes'
 
 export const categoryRoutes = new Hono()
 
-// --- Public: list active categories ---
+// --- Public: list active categories with their subcategories ---
 categoryRoutes.get('/', async (c) => {
   const categories = await db
     .select({
@@ -50,7 +50,30 @@ categoryRoutes.get('/', async (c) => {
     .where(eq(mpCategoriesTable.isActive, true))
     .orderBy(asc(mpCategoriesTable.sortOrder), asc(mpCategoriesTable.name))
 
-  return c.json(categories)
+  const categoryIds = categories.map((c) => c.id)
+  const subcategories = categoryIds.length
+    ? await db
+        .select({
+          id: mpSubcategoriesTable.id,
+          categoryId: mpSubcategoriesTable.categoryId,
+          name: mpSubcategoriesTable.name,
+          slug: mpSubcategoriesTable.slug,
+          sortOrder: mpSubcategoriesTable.sortOrder,
+        })
+        .from(mpSubcategoriesTable)
+        .where(inArray(mpSubcategoriesTable.categoryId, categoryIds))
+        .orderBy(asc(mpSubcategoriesTable.sortOrder))
+    : []
+
+  const subcatByCategory = subcategories.reduce<Record<number, typeof subcategories>>(
+    (acc, sub) => {
+      ;(acc[sub.categoryId] ??= []).push(sub)
+      return acc
+    },
+    {},
+  )
+
+  return c.json(categories.map((cat) => ({ ...cat, subcategories: subcatByCategory[cat.id] ?? [] })))
 })
 
 // --- Public: get category with subcategories ---
