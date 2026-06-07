@@ -22,6 +22,7 @@ import { radarRoutes } from '#modules/radar/routes.js'
 import { adminRoutes } from '#modules/admin/routes.js'
 import { supportRoutes } from '#modules/support/routes.js'
 import { blogRoutes } from '#modules/blog/routes.js'
+import { helpRoutes } from '#modules/help/routes.js'
 
 const app = new Hono()
 
@@ -56,6 +57,7 @@ app.route('/radar', radarRoutes)
 app.route('/admin', adminRoutes)
 app.route('/support', supportRoutes)
 app.route('/blog', blogRoutes)
+app.route('/help', helpRoutes)
 
 app.get('/', (c) => c.json({ status: 'ok', service: 'agro-backend' }))
 
