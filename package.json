@@ -18,6 +18,7 @@
     "db:seed:units": "tsx src/database/seeds/units.ts",
     "db:seed:locations": "tsx src/database/seeds/locations.ts",
     "db:seed:settings": "tsx src/database/seeds/settings.ts",
+    "db:seed:admin": "tsx src/database/seeds/admin-user.ts",
     "db:seed": "npm run db:seed:roles && npm run db:seed:menus && npm run db:seed:categories && npm run db:seed:units && npm run db:seed:locations && npm run db:seed:settings"
   },
   "dependencies": {

@@ -184,7 +184,7 @@ categoryRoutes.use('/admin/*', jwtMiddleware, requireRole('admin'))
 
 // --- Create category ---
 categoryRoutes.post('/admin/categories', zodValidator('json', createCategoryDto), async (c) => {
-  const [, error] = await createCategory(c.req.valid('json'))
+  const [result, error] = await createCategory(c.req.valid('json'))
 
   if (error) {
     throw Match.matchBrand(error)({
@@ -193,7 +193,7 @@ categoryRoutes.post('/admin/categories', zodValidator('json', createCategoryDto)
     })
   }
 
-  return c.body(null, StatusCodes.CREATED)
+  return c.json({ id: result.insertId }, StatusCodes.CREATED)
 })
 
 // --- Update category ---

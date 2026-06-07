@@ -50,7 +50,7 @@ import { jwtMiddleware } from '#modules/shared/http/middleware/jwt-middleware.js
 import { requireRole } from '#modules/shared/http/middleware/require-role.js'
 import { zodValidator } from '#modules/shared/http/middleware/zod-validator.js'
 import type { HonoVariables } from '#modules/shared/lib/hono-variables.js'
-import { asc, desc, eq, and } from 'drizzle-orm'
+import { asc, avg, count, desc, eq, and, ilike, or } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { Match } from 'resultable'
 import { StatusCodes } from 'http-status-codes'
@@ -81,26 +81,55 @@ storeRoutes.get('/', zodValidator('query', listStoresQuery), async (c) => {
   const q = c.req.valid('query')
   const offset = (q.page - 1) * q.limit
 
-  const stores = await db
-    .select({
-      id: mpStoresTable.id,
-      name: mpStoresTable.name,
-      slug: mpStoresTable.slug,
-      description: mpStoresTable.description,
-      logoUrl: mpStoresTable.logoUrl,
-      roleType: mpStoresTable.roleType,
-      department: mpStoresTable.department,
-      municipality: mpStoresTable.municipality,
-      isVerified: mpStoresTable.isVerified,
-      createdAt: mpStoresTable.createdAt,
-    })
-    .from(mpStoresTable)
-    .where(eq(mpStoresTable.status, 'active'))
-    .orderBy(desc(mpStoresTable.isVerified), desc(mpStoresTable.createdAt))
-    .limit(q.limit)
-    .offset(offset)
+  const conditions = [eq(mpStoresTable.status, 'active')]
+  if (q.department) conditions.push(eq(mpStoresTable.department, q.department))
+  if (q.roleType)   conditions.push(eq(mpStoresTable.roleType, q.roleType))
+  if (q.isVerified !== undefined) conditions.push(eq(mpStoresTable.isVerified, q.isVerified))
+  if (q.search) {
+    const term = `%${q.search}%`
+    conditions.push(
+      or(
+        ilike(mpStoresTable.name, term),
+        ilike(mpStoresTable.description, term),
+        ilike(mpStoresTable.municipality, term),
+      )!,
+    )
+  }
 
-  return c.json({ stores, page: q.page, limit: q.limit })
+  const [stores, [{ total }]] = await Promise.all([
+    db
+      .select({
+        id:          mpStoresTable.id,
+        name:        mpStoresTable.name,
+        slug:        mpStoresTable.slug,
+        description: mpStoresTable.description,
+        logoUrl:     mpStoresTable.logoUrl,
+        roleType:    mpStoresTable.roleType,
+        department:  mpStoresTable.department,
+        municipality: mpStoresTable.municipality,
+        isVerified:  mpStoresTable.isVerified,
+        specialties: mpStoreProfilesTable.specialties,
+        lat:         mpGbpProfilesTable.latitude,
+        lng:         mpGbpProfilesTable.longitude,
+        avgRating:   avg(mpReviewsTable.rating),
+        reviewCount: count(mpReviewsTable.id),
+      })
+      .from(mpStoresTable)
+      .leftJoin(mpStoreProfilesTable, eq(mpStoreProfilesTable.storeId, mpStoresTable.id))
+      .leftJoin(mpGbpProfilesTable, eq(mpGbpProfilesTable.storeId, mpStoresTable.id))
+      .leftJoin(
+        mpReviewsTable,
+        and(eq(mpReviewsTable.storeId, mpStoresTable.id), eq(mpReviewsTable.status, 'published')),
+      )
+      .where(and(...conditions))
+      .groupBy(mpStoresTable.id)
+      .orderBy(desc(mpStoresTable.isVerified), desc(mpStoresTable.createdAt))
+      .limit(q.limit)
+      .offset(offset),
+    db.select({ total: count() }).from(mpStoresTable).where(and(...conditions)),
+  ])
+
+  return c.json({ stores, total, page: q.page, limit: q.limit })
 })
 
 // --- Get store by slug (full public profile) ---

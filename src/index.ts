@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { env } from '#env.js'
@@ -38,6 +39,8 @@ app.use(
 )
 
 app.use('*', httpLogger)
+
+app.use('/uploads/*', serveStatic({ root: './public' }))
 
 app.route('/auth', authRoutes)
 app.route('/users', userRoutes)

@@ -10,7 +10,7 @@ export const createCategoryDto = z.object({
   slug: z.string().min(2).max(120).regex(/^[a-z0-9-]+$/, 'Solo minúsculas, números y guiones'),
   description: z.string().max(1000).optional(),
   icon: z.string().max(100).optional(),
-  imageUrl: z.string().url().max(500).optional(),
+  imageUrl: z.string().max(500).optional(),
   sortOrder: z.number().int().default(0),
 })
 

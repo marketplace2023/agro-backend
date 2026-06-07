@@ -19,7 +19,7 @@ const categoryDto = z.object({
   name: z.string().min(2).max(100),
   slug: z.string().min(2).max(100).regex(/^[a-z0-9-]+$/),
   description: z.string().max(1000).optional(),
-  imageUrl: z.string().url().optional().or(z.literal('')),
+  imageUrl: z.string().max(500).optional().or(z.literal('')),
   icon: z.string().max(50).optional(),
   sortOrder: z.number().int().min(0).default(0),
   isActive: z.boolean().default(true),

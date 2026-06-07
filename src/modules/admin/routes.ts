@@ -16,6 +16,8 @@ import { requireRole } from '#modules/shared/http/middleware/require-role.js'
 import { zodValidator } from '#modules/shared/http/middleware/zod-validator.js'
 import type { HonoVariables } from '#modules/shared/lib/hono-variables.js'
 import { and, asc, count, desc, eq, sql } from 'drizzle-orm'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { extname, join } from 'node:path'
 import { Hono } from 'hono'
 import { StatusCodes } from 'http-status-codes'
 import { z } from 'zod'
@@ -23,6 +25,33 @@ import { z } from 'zod'
 export const adminRoutes = new Hono<{ Variables: HonoVariables }>()
 
 adminRoutes.use('*', jwtMiddleware, requireRole('admin'))
+
+// ============================================================
+// FILE UPLOAD
+// ============================================================
+adminRoutes.post('/upload', async (c) => {
+  const body = await c.req.parseBody()
+  const file = body['file']
+
+  if (!file || typeof file === 'string') {
+    return c.json({ error: 'No file provided' }, StatusCodes.BAD_REQUEST)
+  }
+
+  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
+  if (!allowed.includes(file.type)) {
+    return c.json({ error: 'Tipo de archivo no permitido' }, StatusCodes.BAD_REQUEST)
+  }
+
+  const ext = extname(file.name) || '.jpg'
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`
+  const uploadsDir = join(process.cwd(), 'public', 'uploads')
+
+  await mkdir(uploadsDir, { recursive: true })
+  const buffer = Buffer.from(await file.arrayBuffer())
+  await writeFile(join(uploadsDir, filename), buffer)
+
+  return c.json({ url: `/uploads/${filename}` }, StatusCodes.CREATED)
+})
 
 // ============================================================
 // DASHBOARD
