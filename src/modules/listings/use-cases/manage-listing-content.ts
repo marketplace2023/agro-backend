@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 export const listingMediaDto = z.object({
   mediaType: z.enum(['image', 'video', 'document']).default('image'),
-  url: z.string().url().max(500),
+  url: z.string().max(500),
   caption: z.string().max(200).optional(),
   isPrimary: z.boolean().default(false),
   sortOrder: z.number().int().default(0),

@@ -104,6 +104,7 @@ storeRoutes.get('/', zodValidator('query', listStoresQuery), async (c) => {
         slug:        mpStoresTable.slug,
         description: mpStoresTable.description,
         logoUrl:     mpStoresTable.logoUrl,
+        bannerUrl:   mpStoresTable.bannerUrl,
         roleType:    mpStoresTable.roleType,
         department:  mpStoresTable.department,
         municipality: mpStoresTable.municipality,
@@ -210,6 +211,24 @@ storeRoutes.get('/:slug/reviews', async (c) => {
 // AUTHENTICATED: my store management
 // ============================================================
 storeRoutes.use('/my/*', jwtMiddleware)
+
+// --- Upload store image (logo, banner, gallery) ---
+storeRoutes.post('/my/upload', requireRole(...STORE_ROLES), async (c) => {
+  const { mkdir, writeFile } = await import('node:fs/promises')
+  const { extname, join } = await import('node:path')
+
+  const body = await c.req.parseBody()
+  const file = body['file']
+  if (!file || typeof file === 'string') return c.json({ error: 'No file provided' }, 400)
+  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+  if (!allowed.includes(file.type)) return c.json({ error: 'Tipo de archivo no permitido' }, 400)
+  const ext = extname(file.name) || '.jpg'
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`
+  const uploadsDir = join(process.cwd(), 'public', 'uploads')
+  await mkdir(uploadsDir, { recursive: true })
+  await writeFile(join(uploadsDir, filename), Buffer.from(await file.arrayBuffer()))
+  return c.json({ url: `/uploads/${filename}` }, 201)
+})
 
 // --- Get my store ---
 storeRoutes.get('/my/store', async (c) => {
@@ -458,6 +477,34 @@ storeRoutes.put(
 // ============================================================
 // ADMIN
 // ============================================================
+
+storeRoutes.get(
+  '/admin/all',
+  jwtMiddleware,
+  requireRole('admin'),
+  async (c) => {
+    const stores = await db
+      .select({
+        id:          mpStoresTable.id,
+        name:        mpStoresTable.name,
+        slug:        mpStoresTable.slug,
+        description: mpStoresTable.description,
+        logoUrl:     mpStoresTable.logoUrl,
+        roleType:    mpStoresTable.roleType,
+        status:      mpStoresTable.status,
+        department:  mpStoresTable.department,
+        municipality: mpStoresTable.municipality,
+        isVerified:  mpStoresTable.isVerified,
+        userId:      mpStoresTable.userId,
+        createdAt:   mpStoresTable.createdAt,
+      })
+      .from(mpStoresTable)
+      .orderBy(desc(mpStoresTable.createdAt))
+
+    return c.json(stores)
+  },
+)
+
 storeRoutes.patch(
   '/admin/:id/status',
   jwtMiddleware,

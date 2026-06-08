@@ -16,10 +16,10 @@ type ListingStatus = 'draft' | 'pending_review' | 'published' | 'paused' | 'reje
 
 // Allowed transitions: [from] -> [to[]]
 const OWNER_TRANSITIONS: Record<string, ListingStatus[]> = {
-  draft: ['pending_review', 'deleted'],
-  pending_review: ['draft', 'deleted'],
+  draft: ['published', 'pending_review', 'deleted'],
+  pending_review: ['published', 'draft', 'deleted'],
   published: ['paused', 'deleted'],
-  paused: ['pending_review', 'deleted'],
+  paused: ['published', 'pending_review', 'deleted'],
   rejected: ['draft', 'deleted'],
 }
 

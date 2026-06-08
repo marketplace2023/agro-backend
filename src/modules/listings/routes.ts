@@ -60,6 +60,7 @@ const listingsQuery = z.object({
   minPrice: z.coerce.number().optional(),
   maxPrice: z.coerce.number().optional(),
   isFeatured: z.coerce.boolean().optional(),
+  storeSlug: z.string().optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 })
@@ -69,6 +70,18 @@ listingRoutes.get('/', zodValidator('query', listingsQuery), async (c) => {
   const q = c.req.valid('query')
   const offset = (q.page - 1) * q.limit
 
+  // Resolve storeSlug → storeId so the count query doesn't need an extra join
+  let resolvedStoreId: number | null = null
+  if (q.storeSlug) {
+    const [store] = await db
+      .select({ id: mpStoresTable.id })
+      .from(mpStoresTable)
+      .where(eq(mpStoresTable.slug, q.storeSlug))
+      .limit(1)
+    if (!store) return c.json({ listings: [], total: 0, page: q.page, limit: q.limit })
+    resolvedStoreId = store.id
+  }
+
   const conditions = [eq(mpListingsTable.status, 'published')]
   if (q.categoryId) conditions.push(eq(mpListingsTable.categoryId, q.categoryId))
   if (q.subcategoryId) conditions.push(eq(mpListingsTable.subcategoryId, q.subcategoryId))
@@ -77,6 +90,7 @@ listingRoutes.get('/', zodValidator('query', listingsQuery), async (c) => {
   if (q.isFeatured !== undefined) conditions.push(eq(mpListingsTable.isFeatured, q.isFeatured))
   if (q.minPrice) conditions.push(gte(mpListingsTable.price, String(q.minPrice)))
   if (q.maxPrice) conditions.push(lte(mpListingsTable.price, String(q.maxPrice)))
+  if (resolvedStoreId !== null) conditions.push(eq(mpListingsTable.storeId, resolvedStoreId))
 
   const [listings, [{ total }]] = await Promise.all([
     db
@@ -97,6 +111,12 @@ listingRoutes.get('/', zodValidator('query', listingsQuery), async (c) => {
         storeLogoUrl: mpStoresTable.logoUrl,
         storeIsVerified: mpStoresTable.isVerified,
         createdAt: mpListingsTable.createdAt,
+        thumbnailUrl: sql<string | null>`(
+          SELECT url FROM mp_listing_media
+          WHERE listing_id = ${mpListingsTable.id}
+          ORDER BY sort_order ASC
+          LIMIT 1
+        )`,
       })
       .from(mpListingsTable)
       .leftJoin(mpCategoriesTable, eq(mpCategoriesTable.id, mpListingsTable.categoryId))
@@ -209,6 +229,29 @@ listingRoutes.get('/my/listings', async (c) => {
     .orderBy(desc(mpListingsTable.createdAt))
 
   return c.json(listings)
+})
+
+// --- Get single managed listing (with media) ---
+listingRoutes.get('/manage/listings/:id', async (c) => {
+  const { user } = c.get('jwtPayload')
+  const id = Number(c.req.param('id'))
+
+  const [listing] = await db
+    .select()
+    .from(mpListingsTable)
+    .where(eq(mpListingsTable.id, id))
+    .limit(1)
+
+  if (!listing) throw new NotFoundException('Publicación no encontrada')
+  if (listing.userId !== user.id) throw new ForbiddenException()
+
+  const media = await db
+    .select()
+    .from(mpListingMediaTable)
+    .where(eq(mpListingMediaTable.listingId, id))
+    .orderBy(asc(mpListingMediaTable.sortOrder))
+
+  return c.json({ ...listing, media })
 })
 
 // --- Create listing ---
