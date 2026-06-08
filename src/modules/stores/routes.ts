@@ -242,7 +242,13 @@ storeRoutes.get('/my/store', async (c) => {
 
   if (!store) throw new NotFoundException('No tienes una tienda registrada')
 
-  return c.json(store)
+  const [profile, contacts, media] = await Promise.all([
+    db.select().from(mpStoreProfilesTable).where(eq(mpStoreProfilesTable.storeId, store.id)).limit(1),
+    db.select().from(mpStoreContactsTable).where(eq(mpStoreContactsTable.storeId, store.id)).orderBy(asc(mpStoreContactsTable.sortOrder)),
+    db.select().from(mpStoreMediaTable).where(eq(mpStoreMediaTable.storeId, store.id)).orderBy(asc(mpStoreMediaTable.sortOrder)),
+  ])
+
+  return c.json({ ...store, profile: profile[0] ?? null, contacts, media })
 })
 
 // --- Onboarding: assign role + create store (no prior store role required) ---
