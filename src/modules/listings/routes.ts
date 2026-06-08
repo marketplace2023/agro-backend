@@ -148,12 +148,13 @@ listingRoutes.get('/featured', async (c) => {
       storeName: mpStoresTable.name,
       storeSlug: mpStoresTable.slug,
       storeLogoUrl: mpStoresTable.logoUrl,
+      primaryImage: sql<string | null>`(SELECT url FROM mp_listing_media WHERE listing_id = ${mpListingsTable.id} ORDER BY is_primary DESC, sort_order ASC LIMIT 1)`,
     })
     .from(mpListingsTable)
     .leftJoin(mpCategoriesTable, eq(mpCategoriesTable.id, mpListingsTable.categoryId))
     .leftJoin(mpStoresTable, eq(mpStoresTable.id, mpListingsTable.storeId))
-    .where(and(eq(mpListingsTable.status, 'published'), eq(mpListingsTable.isFeatured, true)))
-    .orderBy(desc(mpListingsTable.createdAt))
+    .where(eq(mpListingsTable.status, 'published'))
+    .orderBy(desc(mpListingsTable.isFeatured), desc(mpListingsTable.createdAt))
     .limit(12)
 
   return c.json(listings)

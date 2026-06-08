@@ -140,25 +140,27 @@ searchRoutes.get('/', zodValidator('query', searchQuery), async (c) => {
     db.select({ total: count() }).from(mpListingsTable).where(and(...conditions)),
   ])
 
-  // Attach primary image to each listing
+  // Attach first available image per listing (primary first, then any by sort order)
   const listingIds = listings.map((l) => l.id)
-  const primaryImages =
+  const allImages =
     listingIds.length > 0
       ? await db
           .select({
             listingId: mpListingMediaTable.listingId,
             url: mpListingMediaTable.url,
+            isPrimary: mpListingMediaTable.isPrimary,
+            sortOrder: mpListingMediaTable.sortOrder,
           })
           .from(mpListingMediaTable)
-          .where(
-            and(
-              inArray(mpListingMediaTable.listingId, listingIds),
-              eq(mpListingMediaTable.isPrimary, true),
-            ),
-          )
+          .where(inArray(mpListingMediaTable.listingId, listingIds))
+          .orderBy(desc(mpListingMediaTable.isPrimary), asc(mpListingMediaTable.sortOrder))
       : []
 
-  const imageMap = new Map(primaryImages.map((img) => [img.listingId, img.url]))
+  // Keep only the first image per listing
+  const imageMap = new Map<number, string>()
+  for (const img of allImages) {
+    if (!imageMap.has(img.listingId)) imageMap.set(img.listingId, img.url)
+  }
 
   // Get active filters for the selected category
   const filters = q.categoryId
