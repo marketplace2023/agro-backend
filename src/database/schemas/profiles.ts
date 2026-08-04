@@ -7,6 +7,8 @@ export const mpProfilesTable = mysqlTable(
     id: int('id').autoincrement().primaryKey(),
     userId: int('user_id').notNull().unique('uk_mp_profiles_user_id'),
     phone: varchar('phone', { length: 50 }),
+    documentType: varchar('document_type', { length: 10 }).$type<'cedula' | 'rif'>(),
+    documentNumber: varchar('document_number', { length: 20 }).unique('uk_mp_profiles_document_number'),
     bio: text('bio'),
     avatarUrl: varchar('avatar_url', { length: 500 }),
     department: varchar('department', { length: 100 }),

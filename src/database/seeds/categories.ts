@@ -94,7 +94,7 @@ const CATEGORY_ATTRIBUTES: Record<string, AttrDef[]> = {
     { name: 'cultivo', label: 'Cultivo', attributeType: 'text', isRequired: true, sortOrder: 1 },
     { name: 'variedad', label: 'Variedad', attributeType: 'text', sortOrder: 2 },
     { name: 'volumen', label: 'Volumen disponible', attributeType: 'number', unit: 'kg', isRequired: true, isFilter: true, sortOrder: 3 },
-    { name: 'precio_por_kg', label: 'Precio por kg', attributeType: 'number', unit: 'COP', isRequired: true, isFilter: true, sortOrder: 4 },
+    { name: 'precio_por_kg', label: 'Precio por kg', attributeType: 'number', unit: 'USD', isRequired: true, isFilter: true, sortOrder: 4 },
     {
       name: 'calidad', label: 'Calidad', attributeType: 'select', isRequired: true, isFilter: true, sortOrder: 5,
       options: [
@@ -114,7 +114,7 @@ const CATEGORY_ATTRIBUTES: Record<string, AttrDef[]> = {
     { name: 'marca', label: 'Marca', attributeType: 'text', isRequired: true, sortOrder: 1 },
     { name: 'presentacion', label: 'Presentación', attributeType: 'text', isRequired: true, sortOrder: 2 },
     { name: 'stock', label: 'Stock disponible', attributeType: 'number', isRequired: true, isFilter: true, sortOrder: 3 },
-    { name: 'precio', label: 'Precio', attributeType: 'number', unit: 'COP', isRequired: true, isFilter: true, sortOrder: 4 },
+    { name: 'precio', label: 'Precio', attributeType: 'number', unit: 'USD', isRequired: true, isFilter: true, sortOrder: 4 },
     { name: 'cultivo_aplicable', label: 'Cultivo aplicable', attributeType: 'text', sortOrder: 5 },
     { name: 'registro_ica', label: 'Registro ICA', attributeType: 'text', sortOrder: 6 },
   ],
@@ -131,7 +131,7 @@ const CATEGORY_ATTRIBUTES: Record<string, AttrDef[]> = {
     { name: 'modelo', label: 'Modelo', attributeType: 'text', sortOrder: 3 },
     { name: 'ano_fabricacion', label: 'Año de fabricación', attributeType: 'number', isFilter: true, sortOrder: 4 },
     { name: 'horas_uso', label: 'Horas de uso', attributeType: 'number', unit: 'h', sortOrder: 5 },
-    { name: 'precio', label: 'Precio', attributeType: 'number', unit: 'COP', isRequired: true, isFilter: true, sortOrder: 6 },
+    { name: 'precio', label: 'Precio', attributeType: 'number', unit: 'USD', isRequired: true, isFilter: true, sortOrder: 6 },
     { name: 'departamento', label: 'Departamento', attributeType: 'text', isFilter: true, sortOrder: 7 },
   ],
   'fincas-predios': [
@@ -144,7 +144,7 @@ const CATEGORY_ATTRIBUTES: Record<string, AttrDef[]> = {
       ],
     },
     { name: 'extension', label: 'Extensión (ha)', attributeType: 'number', unit: 'ha', isRequired: true, isFilter: true, sortOrder: 2 },
-    { name: 'precio', label: 'Precio', attributeType: 'number', unit: 'COP', isFilter: true, sortOrder: 3 },
+    { name: 'precio', label: 'Precio', attributeType: 'number', unit: 'USD', isFilter: true, sortOrder: 3 },
     { name: 'tiene_riego', label: '¿Tiene riego?', attributeType: 'boolean', isFilter: true, sortOrder: 4 },
     { name: 'fuente_agua', label: 'Fuente de agua', attributeType: 'text', sortOrder: 5 },
     { name: 'departamento', label: 'Departamento', attributeType: 'text', isRequired: true, isFilter: true, sortOrder: 6 },
@@ -161,7 +161,7 @@ const CATEGORY_ATTRIBUTES: Record<string, AttrDef[]> = {
         { value: 'mixta', label: 'Mixta', sortOrder: 3 },
       ],
     },
-    { name: 'precio_hora', label: 'Precio por hora', attributeType: 'number', unit: 'COP', isFilter: true, sortOrder: 4 },
+    { name: 'precio_hora', label: 'Precio por hora', attributeType: 'number', unit: 'USD', isFilter: true, sortOrder: 4 },
     { name: 'departamento', label: 'Departamento', attributeType: 'text', isFilter: true, sortOrder: 5 },
   ],
   'transporte-agricola': [
@@ -169,7 +169,7 @@ const CATEGORY_ATTRIBUTES: Record<string, AttrDef[]> = {
     { name: 'capacidad_ton', label: 'Capacidad (ton)', attributeType: 'number', unit: 'ton', isFilter: true, sortOrder: 2 },
     { name: 'tiene_refrigeracion', label: '¿Refrigeración?', attributeType: 'boolean', isFilter: true, sortOrder: 3 },
     { name: 'rutas', label: 'Rutas disponibles', attributeType: 'text', sortOrder: 4 },
-    { name: 'precio_km', label: 'Precio por km', attributeType: 'number', unit: 'COP', sortOrder: 5 },
+    { name: 'precio_km', label: 'Precio por km', attributeType: 'number', unit: 'USD', sortOrder: 5 },
   ],
 }
 

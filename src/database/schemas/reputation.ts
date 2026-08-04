@@ -74,7 +74,7 @@ export const mpVerificationDocumentsTable = mysqlTable(
     verificationRequestId: int('verification_request_id').notNull(),
     documentType: varchar('document_type', { length: 30 })
       .notNull()
-      .$type<'cedula' | 'rut' | 'registro_camara' | 'ica_cert' | 'nit' | 'other'>(),
+      .$type<'cedula' | 'rif' | 'registro_mercantil' | 'insai_cert' | 'other'>(),
     documentUrl: varchar('document_url', { length: 500 }).notNull(),
     filename: varchar('filename', { length: 255 }).notNull(),
     uploadedAt: timestamp('uploaded_at').notNull().defaultNow(),

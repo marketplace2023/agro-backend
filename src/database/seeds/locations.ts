@@ -3,40 +3,32 @@ import { drizzle } from 'drizzle-orm/mysql2'
 import mysql from 'mysql2/promise'
 import { mpLocationsTable } from '#database/schemas/search.js'
 
+// Estados de Venezuela + Distrito Capital, códigos ISO 3166-2:VE (sin el prefijo "VE-")
 const DEPARTMENTS = [
-  { name: 'Amazonas', code: '91' },
-  { name: 'Antioquia', code: '05' },
-  { name: 'Arauca', code: '81' },
-  { name: 'Atlántico', code: '08' },
-  { name: 'Bolívar', code: '13' },
-  { name: 'Boyacá', code: '15' },
-  { name: 'Caldas', code: '17' },
-  { name: 'Caquetá', code: '18' },
-  { name: 'Casanare', code: '85' },
-  { name: 'Cauca', code: '19' },
-  { name: 'Cesar', code: '20' },
-  { name: 'Chocó', code: '27' },
-  { name: 'Córdoba', code: '23' },
-  { name: 'Cundinamarca', code: '25' },
-  { name: 'Guainía', code: '94' },
-  { name: 'Guaviare', code: '95' },
-  { name: 'Huila', code: '41' },
-  { name: 'La Guajira', code: '44' },
-  { name: 'Magdalena', code: '47' },
-  { name: 'Meta', code: '50' },
-  { name: 'Nariño', code: '52' },
-  { name: 'Norte de Santander', code: '54' },
-  { name: 'Putumayo', code: '86' },
-  { name: 'Quindío', code: '63' },
-  { name: 'Risaralda', code: '66' },
-  { name: 'San Andrés y Providencia', code: '88' },
-  { name: 'Santander', code: '68' },
-  { name: 'Sucre', code: '70' },
-  { name: 'Tolima', code: '73' },
-  { name: 'Valle del Cauca', code: '76' },
-  { name: 'Vaupés', code: '97' },
-  { name: 'Vichada', code: '99' },
-  { name: 'Bogotá D.C.', code: '11' },
+  { name: 'Amazonas', code: 'Z' },
+  { name: 'Anzoátegui', code: 'B' },
+  { name: 'Apure', code: 'C' },
+  { name: 'Aragua', code: 'D' },
+  { name: 'Barinas', code: 'E' },
+  { name: 'Bolívar', code: 'F' },
+  { name: 'Carabobo', code: 'G' },
+  { name: 'Cojedes', code: 'H' },
+  { name: 'Delta Amacuro', code: 'Y' },
+  { name: 'Falcón', code: 'I' },
+  { name: 'Guárico', code: 'J' },
+  { name: 'La Guaira', code: 'X' },
+  { name: 'Lara', code: 'K' },
+  { name: 'Mérida', code: 'L' },
+  { name: 'Miranda', code: 'M' },
+  { name: 'Monagas', code: 'N' },
+  { name: 'Nueva Esparta', code: 'O' },
+  { name: 'Portuguesa', code: 'P' },
+  { name: 'Sucre', code: 'R' },
+  { name: 'Táchira', code: 'S' },
+  { name: 'Trujillo', code: 'T' },
+  { name: 'Yaracuy', code: 'U' },
+  { name: 'Zulia', code: 'V' },
+  { name: 'Distrito Capital', code: 'A' },
 ] as const
 
 async function seed() {
@@ -50,7 +42,7 @@ async function seed() {
 
   const db = drizzle(pool, { mode: 'default' })
 
-  console.log('Seeding Colombian departments...')
+  console.log('Seeding Venezuelan states...')
 
   await db.delete(mpLocationsTable)
 
@@ -63,7 +55,7 @@ async function seed() {
     })
   }
 
-  console.log(`✓ ${DEPARTMENTS.length} departments seeded`)
+  console.log(`✓ ${DEPARTMENTS.length} states seeded`)
 
   await pool.end()
 }

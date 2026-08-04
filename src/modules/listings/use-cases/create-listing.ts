@@ -11,10 +11,12 @@ export const createListingDto = z.object({
   title: z.string().min(5).max(255),
   description: z.string().max(5000).optional(),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
-  priceUnit: z.string().max(10).default('COP'),
+  priceUnit: z.string().max(10).default('USD'),
   listingType: z.enum(['sale', 'rent', 'service', 'quote', 'alliance']).default('sale'),
   department: z.string().max(100).optional(),
   municipality: z.string().max(100).optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
   expiresAt: z.string().datetime().optional(),
 })
 
@@ -39,7 +41,7 @@ export async function createListing(userId: number, dto: CreateListingDto) {
     .where(eq(mpStoresTable.userId, userId))
     .limit(1)
 
-  const { expiresAt, ...rest } = dto
+  const { expiresAt, latitude, longitude, ...rest } = dto
 
   const [inserted] = await db
     .insert(mpListingsTable)
@@ -50,6 +52,8 @@ export async function createListing(userId: number, dto: CreateListingDto) {
       status: 'draft',
       slug: `draft-${userId}-${Date.now()}`,
       expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+      latitude: latitude !== undefined ? String(latitude) : undefined,
+      longitude: longitude !== undefined ? String(longitude) : undefined,
     })
     .$returningId()
 

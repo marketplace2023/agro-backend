@@ -25,7 +25,7 @@ export const mpListingsTable = mysqlTable(
     title: varchar('title', { length: 255 }).notNull(),
     description: text('description'),
     price: decimal('price', { precision: 14, scale: 2 }),
-    priceUnit: varchar('price_unit', { length: 10 }).default('COP'),
+    priceUnit: varchar('price_unit', { length: 10 }).default('USD'),
     listingType: varchar('listing_type', { length: 20 })
       .notNull()
       .default('sale')
@@ -33,12 +33,14 @@ export const mpListingsTable = mysqlTable(
     status: varchar('status', { length: 20 })
       .notNull()
       .default('draft')
-      .$type<'draft' | 'pending_review' | 'published' | 'paused' | 'rejected' | 'expired' | 'deleted'>(),
+      .$type<'draft' | 'pending_review' | 'published' | 'paused' | 'sold' | 'rejected' | 'expired' | 'deleted'>(),
     isFeatured: boolean('is_featured').notNull().default(false),
     featuredUntil: timestamp('featured_until'),
     expiresAt: timestamp('expires_at'),
     department: varchar('department', { length: 100 }),
     municipality: varchar('municipality', { length: 100 }),
+    latitude: decimal('latitude', { precision: 10, scale: 7 }),
+    longitude: decimal('longitude', { precision: 10, scale: 7 }),
     slug: varchar('slug', { length: 300 }).notNull().unique('uk_mp_listings_slug'),
     viewCount: int('view_count').notNull().default(0),
     whatsappClicks: int('whatsapp_clicks').notNull().default(0),

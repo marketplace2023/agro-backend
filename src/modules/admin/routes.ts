@@ -241,7 +241,7 @@ adminRoutes.patch(
 adminRoutes.get(
   '/listings',
   zodValidator('query', z.object({
-    status: z.enum(['draft', 'pending_review', 'published', 'paused', 'rejected', 'expired', 'deleted']).optional(),
+    status: z.enum(['draft', 'pending_review', 'published', 'paused', 'sold', 'rejected', 'expired', 'deleted']).optional(),
     categoryId: z.coerce.number().int().positive().optional(),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().min(1).max(100).default(20),

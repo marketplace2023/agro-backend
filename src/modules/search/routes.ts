@@ -21,7 +21,10 @@ const searchQuery = z.object({
   maxPrice: z.coerce.number().min(0).optional(),
   isVerifiedStore: z.coerce.boolean().optional(),
   isFeatured: z.coerce.boolean().optional(),
-  sort: z.enum(['recent', 'price_asc', 'price_desc', 'featured']).default('recent'),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  radiusKm: z.coerce.number().positive().max(500).default(50),
+  sort: z.enum(['recent', 'price_asc', 'price_desc', 'featured', 'distance']).default('recent'),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
   // Dynamic attribute filters: attr_<attributeId>=<value>
@@ -43,6 +46,26 @@ searchRoutes.get('/', zodValidator('query', searchQuery), async (c) => {
   if (q.isFeatured !== undefined) conditions.push(eq(mpListingsTable.isFeatured, q.isFeatured))
   if (q.minPrice !== undefined) conditions.push(gte(mpListingsTable.price, String(q.minPrice)))
   if (q.maxPrice !== undefined) conditions.push(lte(mpListingsTable.price, String(q.maxPrice)))
+
+  // "Cerca de mí": distance in km via Haversine, computed from the listing's lat/lng
+  const hasNearMe = q.lat !== undefined && q.lng !== undefined
+  const distanceExpr = hasNearMe
+    ? sql<number>`(6371 * acos(least(1, greatest(-1,
+        cos(radians(${q.lat})) * cos(radians(${mpListingsTable.latitude})) *
+          cos(radians(${mpListingsTable.longitude}) - radians(${q.lng})) +
+        sin(radians(${q.lat})) * sin(radians(${mpListingsTable.latitude}))
+      ))))`
+    : undefined
+
+  if (hasNearMe && distanceExpr) {
+    conditions.push(
+      and(
+        sql`${mpListingsTable.latitude} is not null`,
+        sql`${mpListingsTable.longitude} is not null`,
+        lte(distanceExpr, q.radiusKm),
+      )!,
+    )
+  }
 
   if (q.q) {
     const term = `%${q.q}%`
@@ -98,13 +121,15 @@ searchRoutes.get('/', zodValidator('query', searchQuery), async (c) => {
   }
 
   const orderBy =
-    q.sort === 'price_asc'
-      ? asc(mpListingsTable.price)
-      : q.sort === 'price_desc'
-        ? desc(mpListingsTable.price)
-        : q.sort === 'featured'
-          ? desc(mpListingsTable.isFeatured)
-          : desc(mpListingsTable.createdAt)
+    hasNearMe && distanceExpr && (q.sort === 'distance' || q.sort === 'recent')
+      ? asc(distanceExpr)
+      : q.sort === 'price_asc'
+        ? asc(mpListingsTable.price)
+        : q.sort === 'price_desc'
+          ? desc(mpListingsTable.price)
+          : q.sort === 'featured'
+            ? desc(mpListingsTable.isFeatured)
+            : desc(mpListingsTable.createdAt)
 
   const [listings, [{ total }]] = await Promise.all([
     db
@@ -128,6 +153,7 @@ searchRoutes.get('/', zodValidator('query', searchQuery), async (c) => {
         storeLogoUrl: mpStoresTable.logoUrl,
         storeIsVerified: mpStoresTable.isVerified,
         createdAt: mpListingsTable.createdAt,
+        ...(hasNearMe && distanceExpr ? { distanceKm: distanceExpr } : {}),
       })
       .from(mpListingsTable)
       .leftJoin(mpCategoriesTable, eq(mpCategoriesTable.id, mpListingsTable.categoryId))

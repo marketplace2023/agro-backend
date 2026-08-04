@@ -1,4 +1,4 @@
-import { InvalidCredentials, UserAlreadyExists, UserNotFound } from '#modules/auth/errors.js'
+import { DocumentAlreadyExists, InvalidCredentials, UserAlreadyExists, UserNotFound } from '#modules/auth/errors.js'
 import { login, loginDto } from '#modules/auth/use-cases/login.js'
 import { resetPassword, resetPasswordDto } from '#modules/auth/use-cases/reset-password.js'
 import {
@@ -29,6 +29,10 @@ app.post('/signup', zodValidator('json', signupDto), async (c) => {
 
   if (signupResult instanceof UserAlreadyExists) {
     throw new ValidationException({ email: ['El email ya está registrado'] })
+  }
+
+  if (signupResult instanceof DocumentAlreadyExists) {
+    throw new ValidationException({ documentNumber: ['Este documento ya está registrado'] })
   }
 
   const [loginResult, loginError] = await login({

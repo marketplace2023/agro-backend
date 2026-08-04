@@ -12,14 +12,15 @@ import {
 import { eq } from 'drizzle-orm'
 import { Result } from 'resultable'
 
-type ListingStatus = 'draft' | 'pending_review' | 'published' | 'paused' | 'rejected' | 'expired' | 'deleted'
+type ListingStatus = 'draft' | 'pending_review' | 'published' | 'paused' | 'sold' | 'rejected' | 'expired' | 'deleted'
 
 // Allowed transitions: [from] -> [to[]]
 const OWNER_TRANSITIONS: Record<string, ListingStatus[]> = {
   draft: ['published', 'pending_review', 'deleted'],
   pending_review: ['published', 'draft', 'deleted'],
-  published: ['paused', 'deleted'],
+  published: ['paused', 'sold', 'deleted'],
   paused: ['published', 'pending_review', 'deleted'],
+  sold: ['published', 'deleted'],
   rejected: ['draft', 'deleted'],
 }
 

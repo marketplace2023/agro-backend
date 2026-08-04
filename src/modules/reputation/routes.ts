@@ -242,7 +242,7 @@ reputationRoutes.get('/verifications/my', async (c) => {
 reputationRoutes.post(
   '/verifications/:id/documents',
   zodValidator('json', z.object({
-    documentType: z.enum(['cedula', 'rut', 'registro_camara', 'ica_cert', 'nit', 'other']),
+    documentType: z.enum(['cedula', 'rif', 'registro_mercantil', 'insai_cert', 'other']),
     documentUrl: z.string().url().max(500),
     filename: z.string().max(255),
   })),

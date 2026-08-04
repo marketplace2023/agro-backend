@@ -8,4 +8,8 @@ export class UserAlreadyExists extends Error {
   public readonly __brand = '@/auth/errors/UserAlreadyExists'
 }
 
+export class DocumentAlreadyExists extends Error {
+  public readonly __brand = '@/auth/errors/DocumentAlreadyExists'
+}
+
 export class InvalidCredentials extends Result.BrandedError('@/auth/errors/InvalidCredentials') {}

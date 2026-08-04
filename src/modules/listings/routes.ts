@@ -309,7 +309,7 @@ listingRoutes.put(
 listingRoutes.patch(
   '/manage/listings/:id/status',
   zodValidator('json', z.object({
-    status: z.enum(['draft', 'pending_review', 'published', 'paused', 'rejected', 'expired', 'deleted']),
+    status: z.enum(['draft', 'pending_review', 'published', 'paused', 'sold', 'rejected', 'expired', 'deleted']),
     reason: z.string().max(500).optional(),
   })),
   async (c) => {
